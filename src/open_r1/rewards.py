@@ -36,13 +36,18 @@ def accuracy_reward(completions, solution, **kwargs):
                         try_extract_without_anchor=False,
                     )
                 ],
-                extraction_mode="first_match",
+                extraction_mode="any_match",
             )
+            if len(answer_parsed) != 0:
+                if len(answer_parsed) > 1:
+                    print("Multiple answers found: ", answer_parsed)
+                # If the answer is not parseable, we reward 0
+                answer_parsed = answer_parsed[-1]
             # Reward 1 if the content is the same as the ground truth, 0 otherwise
-            reward = float(verify(answer_parsed, gold_parsed))
+            reward = 2*float(verify(answer_parsed, gold_parsed))
         else:
             # If the gold solution is not parseable, we reward 1 to skip this example
-            reward = 1.0
+            reward = 0.0
             print("Failed to parse gold solution: ", sol)
         rewards.append(reward)
 

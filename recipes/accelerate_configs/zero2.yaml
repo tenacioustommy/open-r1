@@ -5,7 +5,19 @@ deepspeed_config:
   offload_optimizer_device: none
   offload_param_device: none
   zero3_init_flag: false
+  gradient_clipping: 1.0
   zero_stage: 2
+  # "curriculum_learning": {
+  #   "enabled": true,
+  #   "curriculum_type": "seqlen",
+  #   "min_difficulty": 8,
+  #   "max_difficulty": 1024,
+  #   "schedule_type": "fixed_linear",
+  #   "schedule_config": {
+  #     "total_curriculum_step": 1000,
+  #     "difficulty_step": 8
+  #   }
+  # }
 distributed_type: DEEPSPEED
 downcast_bf16: 'no'
 machine_rank: 0

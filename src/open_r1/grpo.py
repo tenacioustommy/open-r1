@@ -54,7 +54,8 @@ class GRPOScriptArguments(ScriptArguments):
     """
 
     reward_funcs: list[str] = field(
-        default_factory=lambda: ["accuracy", "format", "reasoning_steps", "cosine"],
+        # , "reasoning_steps", 
+        default_factory=lambda: ["accuracy", "format", "cosine"],
         metadata={
             "help": "List of reward functions. Possible values: 'accuracy', 'format', 'reasoning_steps', 'cosine'"
         },
@@ -131,7 +132,7 @@ def main(script_args, training_args, model_args):
     REWARD_FUNCS_REGISTRY = {
         "accuracy": accuracy_reward,
         "format": format_reward,
-        "reasoning_steps": reasoning_steps_reward,
+        # "reasoning_steps": reasoning_steps_reward,
         "cosine": get_cosine_scaled_reward(
             min_value_wrong=script_args.cosine_min_value_wrong,
             max_value_wrong=script_args.cosine_max_value_wrong,

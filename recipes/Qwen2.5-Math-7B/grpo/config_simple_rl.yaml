@@ -1,5 +1,5 @@
 # Model arguments
-model_name_or_path: Qwen/Qwen2.5-Math-7B
+model_name_or_path: /cpfs01/shared/public/opencompass/models/hf_hub/models--Qwen--Qwen2.5-Math-7B-Instruct/snapshots/ef9926d75ab1d54532f6a30dd5e760355eb9aa4d 
 model_revision: main
 torch_dtype: bfloat16
 attn_implementation: flash_attention_2
@@ -19,13 +19,13 @@ vllm_gpu_memory_utilization: 0.7
 do_eval: true
 eval_strategy: steps
 eval_steps: 100
-gradient_accumulation_steps: 8
+gradient_accumulation_steps: 2
 gradient_checkpointing: true
 gradient_checkpointing_kwargs:
   use_reentrant: false
 hub_model_id: Qwen-2.5-7B-Simple-RL
 hub_strategy: every_save
-learning_rate: 3.0e-06
+learning_rate: 5e-06
 log_level: info
 logging_steps: 5
 logging_strategy: steps
@@ -33,12 +33,12 @@ lr_scheduler_type: cosine
 max_prompt_length: 512
 max_completion_length: 1024
 max_steps: -1
-num_generations: 7
+num_generations: 2
 num_train_epochs: 1
 output_dir: data/Qwen-2.5-7B-Simple-RL
 overwrite_output_dir: true
 per_device_eval_batch_size: 2
-per_device_train_batch_size: 2
+per_device_train_batch_size: 4
 push_to_hub: true
 report_to:
 - wandb
