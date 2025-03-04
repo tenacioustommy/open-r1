@@ -5,7 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+.efc_9138929639036169597_5984721059343351339_1741070970329956_eval.sh
 # Distribution / packaging
 .Python
 build/
