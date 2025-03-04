@@ -32,6 +32,7 @@ from open_r1.rewards import (
     get_repetition_penalty_reward,
     len_reward,
     reasoning_steps_reward,
+    accuracy_format_reward,
 )
 from open_r1.utils.callbacks import get_callbacks
 from open_r1.utils.wandb_logging import init_wandb_training
@@ -62,8 +63,7 @@ class GRPOScriptArguments(ScriptArguments):
     """
 
     reward_funcs: list[str] = field(
-        # , "reasoning_steps", 
-        default_factory=lambda: ["accuracy", "format", "cosine"],
+        default_factory=lambda: ["accuracy_format"],
         metadata={
             "help": "List of reward functions. Possible values: 'accuracy', 'format', 'reasoning_steps', 'cosine', 'repetition_penalty', 'length'"
         },
@@ -101,10 +101,8 @@ class GRPOScriptArguments(ScriptArguments):
 
 SYSTEM_PROMPT = (
     "A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant "
-    "first thinks about the reasoning process in the mind and then provides the user with the answer. The reasoning "
-    "process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., "
-    "<think> reasoning process here </think><answer> answer here </answer>"
-)
+    "first thinks about the reasoning process in the mind and then provides the user with the answer."
+    )
 
 
 def main(script_args, training_args, model_args):
@@ -150,21 +148,22 @@ def main(script_args, training_args, model_args):
 
     # Get reward functions
     REWARD_FUNCS_REGISTRY = {
-        "accuracy": accuracy_reward,
-        "format": format_reward,
+        "accuracy_format": accuracy_format_reward,
+        # "accuracy": accuracy_reward,
+        # "format": format_reward,
         # "reasoning_steps": reasoning_steps_reward,
-        "cosine": get_cosine_scaled_reward(
-            min_value_wrong=script_args.cosine_min_value_wrong,
-            max_value_wrong=script_args.cosine_max_value_wrong,
-            min_value_correct=script_args.cosine_min_value_correct,
-            max_value_correct=script_args.cosine_max_value_correct,
-            max_len=script_args.cosine_max_len,
-        ),
-        "repetition_penalty": get_repetition_penalty_reward(
-            ngram_size=script_args.repetition_n_grams,
-            max_penalty=script_args.repetition_max_penalty,
-        ),
-        "length": len_reward,
+        # "cosine": get_cosine_scaled_reward(
+        #     min_value_wrong=script_args.cosine_min_value_wrong,
+        #     max_value_wrong=script_args.cosine_max_value_wrong,
+        #     min_value_correct=script_args.cosine_min_value_correct,
+        #     max_value_correct=script_args.cosine_max_value_correct,
+        #     max_len=script_args.cosine_max_len,
+        # ),
+        # "repetition_penalty": get_repetition_penalty_reward(
+        #     ngram_size=script_args.repetition_n_grams,
+        #     max_penalty=script_args.repetition_max_penalty,
+        # ),
+        # "length": len_reward,
     }
     reward_funcs = [REWARD_FUNCS_REGISTRY[func] for func in script_args.reward_funcs]
 

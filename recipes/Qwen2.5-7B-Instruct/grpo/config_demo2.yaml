@@ -1,13 +1,12 @@
 # Model arguments
-# model_name_or_path:  /cpfs01/user/huangzihan/models/Qwen2.5-7B-Instruct/snapshots/a09a35458c702b33eeacc393d103063234e8bc28
-model_name_or_path:  /cpfs01/shared/llm_ddd/opencompass/models/hf_hub/models--deepseek-ai--DeepSeek-R1-Distill-Qwen-7B/snapshots/008b8c2e0b59dac9b7619d58a5ad609f43a5b6b1
+model_name_or_path:  /cpfs01/user/huangzihan/models/Qwen2.5-7B-Instruct/snapshots/a09a35458c702b33eeacc393d103063234e8bc28
+# model_name_or_path:  /cpfs01/shared/llm_ddd/opencompass/models/hf_hub/models--deepseek-ai--DeepSeek-R1-Distill-Qwen-7B/snapshots/008b8c2e0b59dac9b7619d58a5ad609f43a5b6b1
 model_revision: main
 torch_dtype: bfloat16
 attn_implementation: flash_attention_2
 
 # Data training arguments
 # dataset_name: AI-MO/NuminaMath-TIR
-# 最难aime,amc等集合
 dataset_name: DigitalLearningGmbH/MATH-lighteval
 # dataset_name: agentica-org/DeepScaleR-Preview-Dataset
 dataset_configs:
@@ -24,7 +23,7 @@ do_eval: false
 # eval_strategy: steps
 # eval_steps: 100
 gradient_clipping : 1.0
-gradient_accumulation_steps: 8
+gradient_accumulation_steps: 16
 gradient_checkpointing: true
 gradient_checkpointing_kwargs:
   use_reentrant: false
@@ -36,14 +35,14 @@ logging_steps: 1
 logging_strategy: steps
 lr_scheduler_type: cosine
 max_prompt_length: 1024
-max_completion_length: 16384
-max_steps: 100
-num_generations: 7
+max_completion_length: 8192
+max_steps: 300
+num_generations: 14
 num_train_epochs: -1
-output_dir: data/Qwen2.5-7B-Distilled-R1-GRPO
+output_dir: data/Qwen2.5-7B-Open-R1-GRPO-orginal
 overwrite_output_dir: true
-per_device_eval_batch_size: 2
-per_device_train_batch_size: 1
+per_device_eval_batch_size: 4
+per_device_train_batch_size: 2
 push_to_hub: false
 report_to:
 - wandb
@@ -51,3 +50,4 @@ save_strategy: "no"
 # save_steps: 100 
 seed: 42
 warmup_ratio: 0.1
+beta: 0.01

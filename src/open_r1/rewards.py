@@ -2,10 +2,89 @@
 
 import math
 import re
+import os
 from typing import Dict
-
+from datetime import datetime
 from latex2sympy2_extended import NormalizationConfig
+from openai import OpenAI
+from pydantic import BaseModel
+import json
 from math_verify import LatexExtractionConfig, parse, verify
+import dotenv
+dotenv.load_dotenv()
+START_TIME = datetime.now().strftime("%Y%m%d%H%M%S")
+log_path = f"rewards_{START_TIME}.log"
+def accuracy_format_reward(completions, solution, **kwargs):
+    client = OpenAI(api_key="EMPTY",base_url="http://10.130.210.220:8000/v1")
+    use_llm = True
+    current_time = datetime.now().strftime("%d-%H-%M-%S-%f")
+    pattern = r"^<think>.*?</think>(.*)"
+    completion_contents = [completion[0]["content"] for completion in completions]
+    # matches = [re.match(pattern, content, re.DOTALL | re.MULTILINE) for content in completion_contents]
+    # answers = [match.group(1) if match else None for match in matches]
+    rewards = []
+    for content, sol, problem in zip(completion_contents, solution,kwargs['problem']):
+        # match = re.match(pattern, content, re.DOTALL | re.MULTILINE)
+        # answer = match.group(1) if match else None
+        answer = content
+        if answer is None or len(answer) == 0:
+            reward = -1.0
+            rewards.append(reward)
+            continue
+        gold_parsed = parse(
+            sol,
+            extraction_config=[LatexExtractionConfig()],
+        )
+        answer_parsed = parse(answer,extraction_config=[LatexExtractionConfig()])
+        reward = None
+        if verify(gold_parsed, answer_parsed):
+            reward = 1.0
+        else:
+            if use_llm:
+                prompt="""You are an evaluator for large language model responses. You need to score the [model's answer] based on the [question] and [reference answer], focusing only on whether the final answer is correct, not the reasoning process leading to it. 
+                give me true or false in json {'is_correct': } directly."""+ \
+                f"""
+                [Question]
+                {problem}
+                [/Question]
+
+                [Reference Answer]
+                {sol}
+                [/Reference Answer]
+
+                [Model's Answer]
+                {answer}
+                [/Model's Answer]
+                """
+                
+                completion=client.chat.completions.create(model="Qwen2.5-7B-Instruct",
+                                                   messages=[{"role":"user","content":prompt}])
+                pattern = r"```json\s*(\{.*?\})\s*```"
+                match = re.search(pattern, completion.choices[0].message.content, re.DOTALL)
+                try:
+                    # 算答案格式扣分
+                    if match and json.loads(match.group(1))["is_correct"]:
+                        reward = 1.0
+                    else:
+                        reward = -0.5
+                except Exception as e:
+                    reward = -0.5
+            else:
+                reward = -0.5
+        rewards.append(reward)
+
+        # local_rank = int(os.getenv("LOCAL_RANK", 0))
+        with open(log_path, "a") as f:
+            f.write(f"------------- {current_time} Accuracy reward: {reward} -------------\n")
+            f.write(f"Answer_parsed: {answer_parsed}\n")
+            f.write(f"Gold_parsed: {gold_parsed}\n\n")
+            f.write(f"Question: {problem}\n\n")
+            f.write(f"Answer: {content}\n\n")
+            f.write(f"Solution: {sol}\n\n")
+        
+    return rewards
+
+
 
 
 def accuracy_reward(completions, solution, **kwargs):
@@ -39,13 +118,9 @@ def accuracy_reward(completions, solution, **kwargs):
                 ],
                 extraction_mode="any_match",
             )
-            if len(answer_parsed) != 0:
-                if len(answer_parsed) > 1:
-                    print("Multiple answers found: ", answer_parsed)
-                # If the answer is not parseable, we reward 0
-                answer_parsed = answer_parsed[-1]
+            
             # Reward 1 if the content is the same as the ground truth, 0 otherwise
-            reward = 2*float(verify(answer_parsed, gold_parsed))
+            reward = float(verify(answer_parsed, gold_parsed))
         else:
             # If the gold solution is not parseable, we reward 1 to skip this example
             reward = 0.0
@@ -57,7 +132,8 @@ def accuracy_reward(completions, solution, **kwargs):
 
 def format_reward(completions, **kwargs):
     """Reward function that checks if the completion has a specific format."""
-    pattern = r"^<think>.*?</think>\s*<answer>.*?</answer>$"
+    # pattern = r"^<think>.*?</think>\s*<answer>.*?</answer>$"
+    pattern = r"^<think>.*?</think>(.*)"
     completion_contents = [completion[0]["content"] for completion in completions]
     matches = [re.match(pattern, content, re.DOTALL | re.MULTILINE) for content in completion_contents]
     return [1.0 if match else 0.0 for match in matches]
@@ -186,7 +262,7 @@ def get_cosine_scaled_reward(
                 rewards.append(1.0)  # Skip unparseable examples
                 print("Failed to parse gold solution: ", sol)
                 continue
-
+            gold_parsed = gold_parsed[-1]
             answer_parsed = parse(
                 content,
                 extraction_config=[
@@ -276,3 +352,6 @@ def get_repetition_penalty_reward(ngram_size: int, max_penalty: float):
         return rewards
 
     return repetition_penalty_reward
+
+if __name__ == '__main__':
+    accuracy_format_reward([[{"content":"<think>1+1=2</think>answer =2"}]],["2"])

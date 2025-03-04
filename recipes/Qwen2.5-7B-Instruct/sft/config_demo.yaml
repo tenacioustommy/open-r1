@@ -35,8 +35,8 @@ output_dir: data/Qwen2.5-7B-Open-R1-Distill
 overwrite_output_dir: true
 packing: true
 per_device_eval_batch_size: 2
-per_device_train_batch_size: 1
-push_to_hub: true
+per_device_train_batch_size: 2
+push_to_hub: false
 report_to:
 - wandb
 save_strategy: "no"

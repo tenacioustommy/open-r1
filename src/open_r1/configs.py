@@ -15,7 +15,7 @@
 
 from dataclasses import dataclass, field
 from typing import Optional
-
+from datetime import datetime
 import trl
 
 
@@ -37,6 +37,12 @@ class GRPOConfig(trl.GRPOConfig):
     )
     hub_model_revision: Optional[str] = field(
         default="main", metadata={"help": "The Hub model branch to push the model to."}
+    )
+    log_path: Optional[str] = field(
+        default=None, metadata={"help": "The path to save the logs to."}
+    )
+    use_kl: bool = field(
+        default=True, metadata={"help": "Whether to use KL annealing."}
     )
     overwrite_hub_revision: bool = field(default=False, metadata={"help": "Whether to overwrite the Hub revision."})
     push_to_hub_revision: bool = field(default=False, metadata={"help": "Whether to push to a Hub revision/branch."})
